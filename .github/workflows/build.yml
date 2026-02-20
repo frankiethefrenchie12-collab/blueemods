@@ -7,38 +7,39 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-13
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Theos
-        run: |
-          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
-        env:
-          THEOS: ${{ github.workspace }}/theos
-
-      - name: Install iOS SDK
-        run: |
-          curl -LO https://github.com/theos/sdks/releases/latest/download/iPhoneOS16.5.sdk.tar.xz
-          mkdir -p $THEOS/sdks
-          tar -xf iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks
-        env:
-          THEOS: ${{ github.workspace }}/theos
+      - name: Setup Theos
+        uses: theos/theos-action@main
+        with:
+          theos-sdks-path: ./theos/sdks
 
       - name: Build
-        run: |
-          export THEOS=${{ github.workspace }}/theos
-          make package
+        run: make package FINALPACKAGE=1
         env:
-          THEOS: ${{ github.workspace }}/theos
+          THEOS: ${{ env.THEOS }}
 
-      - name: Upload dylib artifact
+      - name: Find build artifacts
+        run: |
+          echo "=== Packages ==="
+          find . -name "*.deb" 2>/dev/null
+          echo "=== Dylibs ==="
+          find . -name "*.dylib" 2>/dev/null
+
+      - name: Upload deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlueeMods-deb
+          path: packages/*.deb
+          if-no-files-found: warn
+
+      - name: Upload dylib
         uses: actions/upload-artifact@v4
         with:
           name: BlueeMods-dylib
-          path: |
-            .theos/obj/debug/BlueeMods.dylib
-            packages/*.deb
+          path: .theos/**/*.dylib
           if-no-files-found: warn
