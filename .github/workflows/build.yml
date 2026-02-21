@@ -24,17 +24,21 @@ jobs:
       - name: Download iOS SDK
         run: |
           git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks
+          echo "Available SDKs:"
           ls /tmp/sdks/
-          SDK=$(ls /tmp/sdks/ | grep iPhoneOS | head -1)
+          SDK=$(ls /tmp/sdks/ | grep "iPhoneOS1[5-9]\|iPhoneOS1[6-9]" | sort -V | tail -1)
+          if [ -z "$SDK" ]; then
+            SDK=$(ls /tmp/sdks/ | grep iPhoneOS | sort -V | tail -1)
+          fi
           echo "Using SDK: $SDK"
           cp -r /tmp/sdks/$SDK $HOME/theos/sdks/
-          echo "SDK_NAME=$SDK" >> $GITHUB_ENV
+          SDK_VERSION=$(echo $SDK | sed 's/iPhoneOS//' | sed 's/.sdk//')
+          echo "SDK_VERSION=$SDK_VERSION" >> $GITHUB_ENV
 
       - name: Update Makefile SDK
         run: |
-          SDK_VERSION=$(echo $SDK_NAME | sed 's/iPhoneOS//' | sed 's/.sdk//')
-          echo "SDK version: $SDK_VERSION"
           sed -i '' "s/TARGET := iphone:clang:[0-9.]*:/TARGET := iphone:clang:$SDK_VERSION:/" Makefile
+          cat Makefile
 
       - name: Build
         run: |
