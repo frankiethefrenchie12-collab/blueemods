@@ -13,53 +13,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: brew install ldid
+      - name: Install Xcode tools
+        run: xcode-select --install || true
 
-      - name: Install Theos
+      - name: Build dylib
         run: |
-          git clone --recursive https://github.com/theos/theos.git $HOME/theos
-          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
-
-      - name: Download iOS SDK
-        run: |
-          git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks
-          echo "Available SDKs:"
-          ls /tmp/sdks/
-          SDK=$(ls /tmp/sdks/ | grep "iPhoneOS1[5-9]\|iPhoneOS1[6-9]" | sort -V | tail -1)
-          if [ -z "$SDK" ]; then
-            SDK=$(ls /tmp/sdks/ | grep iPhoneOS | sort -V | tail -1)
-          fi
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
           echo "Using SDK: $SDK"
-          cp -r /tmp/sdks/$SDK $HOME/theos/sdks/
-          SDK_VERSION=$(echo $SDK | sed 's/iPhoneOS//' | sed 's/.sdk//')
-          echo "SDK_VERSION=$SDK_VERSION" >> $GITHUB_ENV
-
-      - name: Update Makefile SDK
-        run: |
-          sed -i '' "s/TARGET := iphone:clang:[0-9.]*:/TARGET := iphone:clang:$SDK_VERSION:/" Makefile
-          cat Makefile
-
-      - name: Build
-        run: |
-          export THEOS=$HOME/theos
-          make package FINALPACKAGE=1
-
-      - name: Find artifacts
-        run: |
-          find . -name "*.deb" 2>/dev/null
-          find . -name "*.dylib" 2>/dev/null
-
-      - name: Upload deb
-        uses: actions/upload-artifact@v4
-        with:
-          name: BlueeMods-deb
-          path: packages/*.deb
-          if-no-files-found: warn
+          clang -arch arm64 \
+            -isysroot $SDK \
+            -miphoneos-version-min=14.0 \
+            -fobjc-arc \
+            -dynamiclib \
+            -framework UIKit \
+            -framework Foundation \
+            -framework CoreGraphics \
+            -framework QuartzCore \
+            -o BlueeMods.dylib \
+            BlueeMods/BlueeModsWindow.mm
 
       - name: Upload dylib
         uses: actions/upload-artifact@v4
         with:
           name: BlueeMods-dylib
-          path: .theos/**/*.dylib
-          if-no-files-found: warn
+          path: BlueeMods.dylib
+          if-no-files-found: error
