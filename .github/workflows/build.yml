@@ -14,9 +14,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: |
-          brew install ldid xz
-          
+        run: brew install ldid
+
       - name: Install Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git $HOME/theos
@@ -24,8 +23,8 @@ jobs:
 
       - name: Download iOS SDK
         run: |
-          curl -LO https://github.com/theos/sdks/releases/download/v1/iPhoneOS16.5.sdk.tar.xz
-          tar -xf iPhoneOS16.5.sdk.tar.xz -C $HOME/theos/sdks/
+          git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks
+          cp -r /tmp/sdks/iPhoneOS16.5.sdk $HOME/theos/sdks/
 
       - name: Build
         run: |
