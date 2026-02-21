@@ -13,22 +13,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Theos
-        uses: theos/theos-action@main
-        with:
-          theos-sdks-path: ./theos/sdks
+      - name: Install dependencies
+        run: |
+          brew install ldid xz
+          
+      - name: Install Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git $HOME/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+
+      - name: Download iOS SDK
+        run: |
+          curl -LO https://github.com/theos/sdks/releases/download/v1/iPhoneOS16.5.sdk.tar.xz
+          tar -xf iPhoneOS16.5.sdk.tar.xz -C $HOME/theos/sdks/
 
       - name: Build
-        run: make package FINALPACKAGE=1
-        env:
-          THEOS: ${{ env.THEOS }}
-
-      - name: Find build artifacts
         run: |
-          echo "=== Packages ==="
-          find . -name "*.deb" 2>/dev/null
-          echo "=== Dylibs ==="
-          find . -name "*.dylib" 2>/dev/null
+          export THEOS=$HOME/theos
+          make package FINALPACKAGE=1
+
+      - name: Find artifacts
+        run: |
+          find . -name "*.deb" -o -name "*.dylib" 2>/dev/null
 
       - name: Upload deb
         uses: actions/upload-artifact@v4
