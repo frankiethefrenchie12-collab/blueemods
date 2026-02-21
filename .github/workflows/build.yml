@@ -24,7 +24,7 @@ jobs:
       - name: Download iOS SDK
         run: |
           git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks
-          cp -r /tmp/sdks/iPhoneOS16.5.sdk $HOME/theos/sdks/
+          cp -r /tmp/sdks/iPhoneOS14.5.sdk $HOME/theos/sdks/
 
       - name: Build
         run: |
@@ -33,7 +33,8 @@ jobs:
 
       - name: Find artifacts
         run: |
-          find . -name "*.deb" -o -name "*.dylib" 2>/dev/null
+          find . -name "*.deb" 2>/dev/null
+          find . -name "*.dylib" 2>/dev/null
 
       - name: Upload deb
         uses: actions/upload-artifact@v4
