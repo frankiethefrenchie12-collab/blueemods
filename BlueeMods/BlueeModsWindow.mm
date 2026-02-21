@@ -183,7 +183,7 @@
         [ACItem name:@"Cube Pickaxe"  id:@"cube_pickaxe"   cat:@"Melee"      tab:@"Weapons"],
         [ACItem name:@"Drill"         id:@"drill"          cat:@"Melee"      tab:@"Weapons"],
         [ACItem name:@"Frying Pan"    id:@"frying_pan"     cat:@"Melee"      tab:@"Weapons"],
-        [ACItem name:@"Golden Pickaxe"id:@"golden_pickaxe" cat:@"Melee"      tab:@"Weapons"],
+        [ACItem name:@"Golden Pickaxe" id:@"golden_pickaxe" cat:@"Melee"      tab:@"Weapons"],
         [ACItem name:@"Great Sword"   id:@"great_sword"    cat:@"Melee"      tab:@"Weapons"],
         [ACItem name:@"Hatchet"       id:@"hatchet"        cat:@"Melee"      tab:@"Weapons"],
         [ACItem name:@"Lance"         id:@"lance"          cat:@"Melee"      tab:@"Weapons"],
@@ -191,7 +191,7 @@
         [ACItem name:@"Pickaxe"       id:@"pickaxe"        cat:@"Melee"      tab:@"Weapons"],
         [ACItem name:@"Spear"         id:@"spear"          cat:@"Melee"      tab:@"Weapons"],
         [ACItem name:@"Sword"         id:@"sword"          cat:@"Melee"      tab:@"Weapons"],
-        [ACItem name:@"Stellar Swords"id:@"stellar_swords" cat:@"Melee"      tab:@"Weapons"],
+        [ACItem name:@"Stellar Swords" id:@"stellar_swords" cat:@"Melee"      tab:@"Weapons"],
         // WEAPONS - Ranged
         [ACItem name:@"Boomerang"     id:@"boomerang"      cat:@"Ranged"     tab:@"Weapons"],
         [ACItem name:@"Crossbow"      id:@"crossbow"       cat:@"Ranged"     tab:@"Weapons"],
@@ -279,7 +279,9 @@
     _bmButton.layer.borderWidth = 2;
 
     // Concentric rings
-    for (CGFloat r : {size * 0.38, size * 0.62}) {
+    NSArray *ringRadii = @[@(size * 0.38), @(size * 0.62)];
+    for (NSNumber *rNum in ringRadii) {
+        CGFloat r = rNum.floatValue;
         CAShapeLayer *ring = [CAShapeLayer layer];
         ring.path = [UIBezierPath bezierPathWithArcCenter:CGPointMake(size/2, size/2)
                                                    radius:r/2 startAngle:0
