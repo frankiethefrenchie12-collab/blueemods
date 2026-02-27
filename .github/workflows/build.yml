@@ -1,21 +1,33 @@
 name: Build Tweak
+
 on: [push, workflow_dispatch]
+
 jobs:
   build:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install ldid
+        run: brew install ldid
+
       - name: Install Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git $HOME/theos
           git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks
-          cp -r /tmp/sdks/iPhoneOS16.5.sdk $HOME/theos/sdks/
+          SDK=$(ls /tmp/sdks/ | grep iPhoneOS | sort -V | tail -1)
+          cp -r /tmp/sdks/$SDK $HOME/theos/sdks/
+          SDK_VER=$(echo $SDK | sed 's/iPhoneOS//' | sed 's/.sdk//')
+          sed -i '' "s/TARGET := iphone:clang:latest/TARGET := iphone:clang:$SDK_VER/" Makefile
+
       - name: Build
         run: |
           export THEOS=$HOME/theos
           make package FINALPACKAGE=1
-      - name: Upload
+
+      - name: Upload deb
         uses: actions/upload-artifact@v4
         with:
-          name: BlueeMods
+          name: BlueeMods-deb
           path: packages/*.deb
+          if-no-files-found: error
