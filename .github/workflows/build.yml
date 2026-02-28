@@ -14,15 +14,18 @@ jobs:
       - name: Install Theos
         run: |
           git clone --recursive https://github.com/theos/theos.git $HOME/theos
-          git clone --depth 1 https://github.com/theos/sdks.git /tmp/sdks
-          SDK=$(ls /tmp/sdks/ | grep iPhoneOS | sort -V | tail -1)
-          cp -r /tmp/sdks/$SDK $HOME/theos/sdks/
-          SDK_VER=$(echo $SDK | sed 's/iPhoneOS//' | sed 's/.sdk//')
-          sed -i '' "s/TARGET := iphone:clang:latest/TARGET := iphone:clang:$SDK_VER/" Makefile
+
+      - name: Link Xcode SDK
+        run: |
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          echo "Using SDK: $SDK"
+          ln -s "$SDK" $HOME/theos/sdks/iPhoneOS.sdk
+          echo "TARGET=iphone:clang:iPhoneOS:14.0" >> $GITHUB_ENV
 
       - name: Build
         run: |
           export THEOS=$HOME/theos
+          export TARGET=iphone:clang:iPhoneOS:14.0
           make package FINALPACKAGE=1
 
       - name: Upload deb
